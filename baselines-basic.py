@@ -139,9 +139,14 @@ def train_and_eval(c, penalty, class_weight, print_results=False):
         vocab = doc_vectorizer.get_feature_names_out()
         print("Original vocab size:", len(vocab))
         if FEATURE_SIZE == -1:
+            # estimator = LogisticRegression(class_weight='balanced', dual=False,
+            #                                 fit_intercept=True, penalty='none',
+            #                                 solver='newton-cg', random_state=SEED, n_jobs=-1)
+            
             estimator = LogisticRegression(class_weight='balanced', dual=False,
-                                           fit_intercept=True, penalty='none',
-                                           solver='newton-cg', random_state=SEED, n_jobs=-1)
+                                            fit_intercept=True, penalty=None,
+                                            solver='newton-cg', random_state=SEED, n_jobs=-1)
+
             selector = SelectFromModel(estimator=estimator).fit(doc_vectorizer.transform(X_train), y_train)
         else:
             selector = SelectKBest(f_classif, k=FEATURE_SIZE).fit(doc_vectorizer.transform(X_train), y_train)
@@ -153,8 +158,10 @@ def train_and_eval(c, penalty, class_weight, print_results=False):
         doc_vectorizer = TfidfVectorizer(**FEATURE_VECTORIZER_ARGS)
 
     if MODEL == "LR":
+        if penalty == 'none' : penalty = None
         clf = MODELS[MODEL](C=c, class_weight=class_weight, penalty=penalty, random_state=SEED, n_jobs=-1)
     else:
+        if penalty == 'none' : penalty = None
         clf = MODELS[MODEL](C=c, class_weight=class_weight, random_state=SEED)
     clf.fit(doc_vectorizer.fit_transform(X_train), y_train)
     y_pred = clf.predict(doc_vectorizer.transform(X_dev)).tolist()
@@ -182,6 +189,8 @@ if __name__ == "__main__":
         global best_metric
 
         penalty = trial.suggest_categorical("penalty", ['l2', 'none']) if MODEL == "LR" else None
+
+        if penalty == 'none' : penalty = None
 
         current_metric = train_and_eval(
             trial.suggest_float("C", 0.001, 10, log=True),

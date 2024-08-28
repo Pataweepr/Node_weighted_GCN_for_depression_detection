@@ -478,8 +478,8 @@ def load_checkpoint(path, model):
 
 def save_metrics(path, train_loss_list, steps_list, target_metric_list):
     state_dict = {'train_loss_list': train_loss_list,
-                  'target_metric_list': target_metric_list,
-                  'steps_list': steps_list}
+                    'target_metric_list': target_metric_list,
+                    'steps_list': steps_list}
     torch.save(state_dict, path)
 
 
@@ -569,8 +569,8 @@ def evaluate(model, x_dev, y_dev, labels, show_result=True):
         plt.show()
     else:
         return classification_report(y_dev, y_pred,
-                                     target_names=labels, digits=4,
-                                     output_dict=True)
+                                    target_names=labels, digits=4,
+                                    output_dict=True)
 
 
 def train_inductgcn(learning_rate, num_steps, save_model=False):
@@ -594,7 +594,8 @@ def train_inductgcn(learning_rate, num_steps, save_model=False):
         vocab = doc_vectorizer.get_feature_names_out()
         print("Original vocab size:", len(vocab))
         if FEATURE_SIZE == -1:
-            estimator = LogisticRegression(class_weight='balanced', dual=False, fit_intercept=True, penalty='none', solver='newton-cg', random_state=SEED, n_jobs=-1)
+            # estimator = LogisticRegression(class_weight='balanced', dual=False, fit_intercept=True, penalty='none', solver='newton-cg', random_state=SEED, n_jobs=-1)
+            estimator = LogisticRegression(class_weight='balanced', dual=False, fit_intercept=True, penalty=None, solver='newton-cg', random_state=SEED, n_jobs=-1)
             selector = SelectFromModel(estimator=estimator).fit(doc_vectorizer.transform(X_train), y_train_list)
         else:
             selector = SelectKBest(f_classif, k=FEATURE_SIZE).fit(doc_vectorizer.transform(X_train), y_train_list)
@@ -720,7 +721,10 @@ if __name__ == "__main__":
     y_train = y_train.to(DEVICE)
     n_labels = len(ix2label)
     labels = [ix2label[ix] for ix in range(n_labels)]
-    class_weight = torch.tensor(compute_class_weight(class_weight='balanced', classes=list(range(len(ix2label))), y=y_train_list),
+    # print(f'labels : {labels}')
+    # print(f'classes : {np.array(range(len(ix2label)))}')
+    # print(f'y_train_list : {y_train_list}')
+    class_weight = torch.tensor(compute_class_weight(class_weight='balanced', classes=np.array(range(len(ix2label))), y=y_train_list),
                                 dtype=torch.float).to(DEVICE) if CLASS_WEIGHT else None
 
     best_metric = float("inf") if TARGET_METRIC == "loss" else float("-inf")  # https://github.com/optuna/optuna/issues/2575
@@ -734,7 +738,7 @@ if __name__ == "__main__":
 
         current_metric, current_best_results = train_inductgcn(lr, num_steps, False)
         if (TARGET_METRIC == "loss" and current_metric < best_metric) or \
-           (TARGET_METRIC != "loss" and current_metric > best_metric):
+            (TARGET_METRIC != "loss" and current_metric > best_metric):
             best_metric = current_metric
             best_results = current_best_results
 

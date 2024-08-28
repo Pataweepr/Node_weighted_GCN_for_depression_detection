@@ -98,3 +98,21 @@ This repo also contains the original optuna sqlite database files (`db_baselines
 ```bash
 $ optuna-dashboard sqlite:///db_inductgcn.sqlite3
 ```
+
+### Optuna upgrade (example)
+```bash
+$ optuna storage upgrade --storage "sqlite:///db_baselines.sqlite3"
+$ optuna storage upgrade --storage "sqlite:///db_inductgcn.sqlite3"
+```
+
+### penalty : edit
+```python
+if penalty == 'none' : penalty = None
+
+
+estimator = LogisticRegression(class_weight='balanced', dual=False, fit_intercept=True, penalty=None, solver='newton-cg', random_state=SEED, n_jobs=-1)
+
+
+class_weight = torch.tensor(compute_class_weight(class_weight='balanced', classes=np.array(range(len(ix2label))), y=y_train_list),
+                            dtype=torch.float).to(DEVICE) if CLASS_WEIGHT else None
+```
