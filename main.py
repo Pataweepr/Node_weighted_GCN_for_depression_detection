@@ -106,12 +106,6 @@ def get_task_info(option, only_description=False):
     return dataset, feature_size, use_pagerank, feature_selection, study_name, option_description
 
 
-parser = argparse.ArgumentParser()
-
-parser.add_argument("-i", "--task-id", help="The task id to be run", default=-1, required=False, type=int)
-args = parser.parse_args()
-
-
 class InducTGCN(nn.Module):
     """InducT-GCN model class definition"""
     def __init__(self, embedding_dim, labels, dropout, vectorizer):
@@ -347,7 +341,7 @@ class InducTGCN(nn.Module):
         batch_size = len(test_documents)
 
         H_0_wB = torch.concat([torch.eye(vocab_size, dtype=torch.float),
-                               torch.tensor(self._doc_vectorizer.transform(test_documents).todense(), dtype=torch.float)])
+                                torch.tensor(self._doc_vectorizer.transform(test_documents).todense(), dtype=torch.float)])
         A_B = torch.zeros((batch_size, vocab_size + batch_size), dtype=torch.float, device="cpu")
         A_B[:, :vocab_size] = H_0_wB[vocab_size:, :]
         A_B[:, vocab_size:] = torch.eye(batch_size, dtype=torch.float)
@@ -657,6 +651,9 @@ def train_inductgcn(learning_rate, num_steps, save_model=False):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-i", "--task-id", help="The task id to be run", default=-1, required=False, type=int)
+    args = parser.parse_args()
 
     if args.task_id < 0:
         print(f"\nThere's a total of {OPTIONS_N} task options. List by task id:")
